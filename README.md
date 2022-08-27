@@ -1,8 +1,8 @@
 # n8n-nodes-ldap
 
-<img src="./nodes/Ldap/ldap.svg" width=120 />
-
 This is an n8n community node for interacting with LDAP servers including OpenLDAP and Active Directory.
+
+<img src="./nodes/Ldap/ldap.svg" width=120 />
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -104,6 +104,9 @@ n8n v0.187+
 <img src="./images/workflow.png" width=480 />
 
 ### Credentials
+
+You'll need three credentials to execute the three LDAP nodes.
+
 #### Debian Users
 
 - **Hostname**: `db.debian.org`
@@ -125,8 +128,6 @@ n8n v0.187+
 
 <details>
 <summary><b>Expand to show workflow JSON</b></summary>
-
-You'll need three credentials to execute the three LDAP nodes.
 
 *Copy and paste this JSON into a blank n8n workflow!*
 
@@ -439,4 +440,4 @@ Then configure your n8n LDAP credentials:
 
 ## License
 
-[MIT](https://github.com/pemontto/n8n-nodes-mjml/blob/master/LICENSE.md)
+[MIT](https://github.com/pemontto/n8n-nodes-ldap/blob/master/LICENSE.md)

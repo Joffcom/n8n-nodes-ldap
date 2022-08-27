@@ -47,7 +47,8 @@ export class Ldap implements ICredentialType {
 			name: 'port',
 			type: 'string',
 			default: '',
-			description: 'The port to connect to. If not specified, the default port will be used (389 or 636).',
+			description:
+				'The port to connect to. If not specified, the default port will be used (389 or 636).',
 		},
 		{
 			displayName: 'Ignore SSL/TLS Issues',

@@ -417,7 +417,8 @@ export class Ldap implements INodeType {
 						displayName: 'Scope',
 						name: 'scope',
 						default: 'sub',
-						description: 'The set of entries at or below the BaseDN that may be considered potential matches',
+						description:
+							'The set of entries at or below the BaseDN that may be considered potential matches',
 						type: 'options',
 						options: [
 							{
@@ -436,7 +437,6 @@ export class Ldap implements INodeType {
 					},
 				],
 			},
-
 		],
 	};
 
@@ -448,7 +448,7 @@ export class Ldap implements INodeType {
 
 		const credentials = await this.getCredentials('ldap');
 		const protocol = credentials.secure ? 'ldaps' : 'ldap';
-		const port = credentials.port ? credentials.port : (credentials.secure ? 636 : 389);
+		const port = credentials.port ? credentials.port : credentials.secure ? 636 : 389;
 		const url = `${protocol}://${credentials.hostname}:${port}`;
 		const bindDN = credentials.bindDN as string;
 		const bindPassword = credentials.bindPassword as string;
@@ -472,14 +472,16 @@ export class Ldap implements INodeType {
 		try {
 			await client.bind(bindDN, bindPassword);
 		} catch (error) {
-			console.log(`error: ${JSON.stringify(Object.keys(error.cert.issuerCertificate),null,2)}`);
+			console.log(`error: ${JSON.stringify(Object.keys(error.cert.issuerCertificate), null, 2)}`);
 			delete error.cert;
 			console.log(`error: ${JSON.stringify(error)}`);
 			if (this.continueOnFail()) {
-				return [items.map(x => {
-					x.json.error = error.reason || 'LDAP connection error occurred';
-					return x;
-				})];
+				return [
+					items.map((x) => {
+						x.json.error = error.reason || 'LDAP connection error occurred';
+						return x;
+					}),
+				];
 			} else {
 				throw new NodeOperationError(this.getNode(), error, {});
 			}
@@ -503,7 +505,7 @@ export class Ldap implements INodeType {
 
 					if (Object.keys(attributeFields).length) {
 						//@ts-ignore
-						attributeFields.attribute.map( attr => {
+						attributeFields.attribute.map((attr) => {
 							attributes[attr.id as string] = attr.value;
 						});
 					}
@@ -512,20 +514,18 @@ export class Ldap implements INodeType {
 					const res = await client.add(dn, attributes);
 
 					returnItems.push({
-						json: {dn, result: 'success'},
+						json: { dn, result: 'success' },
 						pairedItem: { item: itemIndex },
 					});
-
 				} else if (operation === 'delete') {
 					const dn = this.getNodeParameter('dn', itemIndex) as string;
 
 					const res = await client.del(dn);
 
 					returnItems.push({
-						json: {dn, result: 'success'},
+						json: { dn, result: 'success' },
 						pairedItem: { item: itemIndex },
 					});
-
 				} else if (operation === 'rename') {
 					const dn = this.getNodeParameter('dn', itemIndex) as string;
 					const targetDn = this.getNodeParameter('targetDn', itemIndex) as string;
@@ -534,10 +534,9 @@ export class Ldap implements INodeType {
 
 					console.log(`res: ${JSON.stringify(res, null, 2)}`);
 					returnItems.push({
-						json: {dn: targetDn, result: 'success'},
+						json: { dn: targetDn, result: 'success' },
 						pairedItem: { item: itemIndex },
 					});
-
 				} else if (operation === 'modify') {
 					const dn = this.getNodeParameter('dn', itemIndex) as string;
 					const attributes = this.getNodeParameter('attributes', itemIndex, {}) as IDataObject;
@@ -550,15 +549,18 @@ export class Ldap implements INodeType {
 					for (const [action, attrs] of Object.entries(attributes)) {
 						console.log(`${action}: ${JSON.stringify(attrs)}`);
 						//@ts-ignore
-						attrs.map( attr => changes.push(new Change({
-							// @ts-ignore
-							operation: action,
-							modification: new Attribute({
-								type: attr.id as string,
-								values: [attr.value],
-							}),
-						})));
-
+						attrs.map((attr) =>
+							changes.push(
+								new Change({
+									// @ts-ignore
+									operation: action,
+									modification: new Attribute({
+										type: attr.id as string,
+										values: [attr.value],
+									}),
+								}),
+							),
+						);
 					}
 
 					// //@ts-ignore
@@ -594,16 +596,14 @@ export class Ldap implements INodeType {
 					// 	}));
 					// }
 
-
 					// console.log(`changes: ${JSON.stringify(changes, null, 2)}`);
 
 					const res = await client.modify(dn, changes);
 
 					returnItems.push({
-						json: {dn, result: 'success', changes},
+						json: { dn, result: 'success', changes },
 						pairedItem: { item: itemIndex },
 					});
-
 				} else if (operation === 'search') {
 					// const ldapSearch = promisify(client.search);
 					const baseDN = this.getNodeParameter('baseDN', itemIndex) as string;
@@ -622,12 +622,13 @@ export class Ldap implements INodeType {
 						results.searchEntries = results.searchEntries.slice(0, limit);
 					}
 
-					returnItems.push.apply(returnItems, results.searchEntries.map( (result) => (
-						{
+					returnItems.push.apply(
+						returnItems,
+						results.searchEntries.map((result) => ({
 							json: result,
 							pairedItem: { item: itemIndex },
-						}
-					)));
+						})),
+					);
 				}
 			} catch (error) {
 				// This node should never fail but we want to showcase how
