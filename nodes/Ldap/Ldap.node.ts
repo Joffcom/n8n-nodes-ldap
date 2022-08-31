@@ -21,7 +21,6 @@ export class Ldap implements INodeType {
 		description: 'Interact with LDAP servers',
 		defaults: {
 			name: 'LDAP',
-			color: '#3b4151',
 		},
 		inputs: ['main'],
 		outputs: ['main'],
