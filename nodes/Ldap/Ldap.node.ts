@@ -28,6 +28,7 @@ export class Ldap implements INodeType {
 			{
 				// eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
 				name: 'ldap',
+				required: true,
 			},
 		],
 		properties: [
@@ -39,6 +40,10 @@ export class Ldap implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
+					{
+						name: 'Compare',
+						value: 'compare',
+					},
 					{
 						name: 'Create',
 						value: 'create',
@@ -73,10 +78,38 @@ export class Ldap implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						operation: ['create', 'delete', 'rename', 'modify'],
+						operation: ['compare', 'create', 'delete', 'rename', 'modify'],
 					},
 				},
 				description: 'The DN of the entry',
+			},
+			// ----------------------------------
+			//         Compare
+			// ----------------------------------
+			{
+				displayName: 'Attribute ID',
+				name: 'id',
+				type: 'string',
+				default: '',
+				description: 'The attribute ID of the attribute to compare',
+				required: true,
+				displayOptions: {
+					show: {
+						operation: ['compare'],
+					},
+				},
+			},
+			{
+				displayName: 'Value',
+				name: 'value',
+				type: 'string',
+				default: '',
+				description: 'The value to compare',
+				displayOptions: {
+					show: {
+						operation: ['compare'],
+					},
+				},
 			},
 			// ----------------------------------
 			//         Rename
@@ -494,7 +527,18 @@ export class Ldap implements INodeType {
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
 				item = items[itemIndex];
-				if (operation === 'create') {
+				if (operation === 'compare') {
+					const dn = this.getNodeParameter('dn', itemIndex) as string;
+					const attributeId = this.getNodeParameter('id', itemIndex) as string;
+					const value = this.getNodeParameter('value', itemIndex, '') as string;
+
+					const res = await client.compare(dn, attributeId, value);
+
+					returnItems.push({
+						json: { dn, attribute: attributeId, result: res },
+						pairedItem: { item: itemIndex },
+					});
+				} else if (operation === 'create') {
 					const dn = this.getNodeParameter('dn', itemIndex) as string;
 					const attributeFields = this.getNodeParameter('attributes', itemIndex) as IDataObject;
 

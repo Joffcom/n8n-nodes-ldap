@@ -48,6 +48,10 @@ For Docker-based deployments add the following line before the font installation
 
 ## Operations
 
+- **Compare**: Compare an attribute to a value
+  - `DN`: The distinguised name of the object to compare
+  - `Attribute ID`: The attribute to compare the value against
+  - `Value`: The value to compare
 - **Create**: Create a new object
   - `DN`: The distinguised name of the object to create
   - **Attributes**
