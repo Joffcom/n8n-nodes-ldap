@@ -1,4 +1,4 @@
-/* eslint-disable n8n-nodes-base/node-filename-against-convention,n8n-nodes-base/node-class-description-credentials-name-unsuffixed */
+/* eslint-disable n8n-nodes-base/node-filename-against-convention */
 import { IExecuteFunctions } from 'n8n-core';
 import {
 	IDataObject,
@@ -26,6 +26,7 @@ export class Ldap implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
+				// eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
 				name: 'ldap',
 			},
 		],
@@ -471,9 +472,9 @@ export class Ldap implements INodeType {
 		try {
 			await client.bind(bindDN, bindPassword);
 		} catch (error) {
-			console.log(`error: ${JSON.stringify(Object.keys(error.cert.issuerCertificate), null, 2)}`);
+			// console.log(`error: ${JSON.stringify(Object.keys(error.cert.issuerCertificate), null, 2)}`);
 			delete error.cert;
-			console.log(`error: ${JSON.stringify(error)}`);
+			// console.log(`error: ${JSON.stringify(error)}`);
 			if (this.continueOnFail()) {
 				return [
 					items.map((x) => {
@@ -496,9 +497,6 @@ export class Ldap implements INodeType {
 				if (operation === 'create') {
 					const dn = this.getNodeParameter('dn', itemIndex) as string;
 					const attributeFields = this.getNodeParameter('attributes', itemIndex) as IDataObject;
-
-					console.log(`Creating entry ${dn}`);
-					console.log(`attributeFields: ${JSON.stringify(attributeFields)}`);
 
 					const attributes: IDataObject = {};
 
@@ -531,7 +529,6 @@ export class Ldap implements INodeType {
 
 					const res = await client.modifyDN(dn, targetDn);
 
-					console.log(`res: ${JSON.stringify(res, null, 2)}`);
 					returnItems.push({
 						json: { dn: targetDn, result: 'success' },
 						pairedItem: { item: itemIndex },
@@ -546,7 +543,6 @@ export class Ldap implements INodeType {
 					const changes: Change[] = [];
 
 					for (const [action, attrs] of Object.entries(attributes)) {
-						console.log(`${action}: ${JSON.stringify(attrs)}`);
 						//@ts-ignore
 						attrs.map((attr) =>
 							changes.push(
@@ -632,11 +628,8 @@ export class Ldap implements INodeType {
 			} catch (error) {
 				// This node should never fail but we want to showcase how
 				// to handle errors.
-				console.log('HERE');
-				console.log(Object.keys(error));
 				// console.log(`ERROR: ${error}`);
 				if (this.continueOnFail()) {
-					console.log(`continuing on fail`);
 					// returnItems.push({ json: {error, result: 'error'}, pairedItem: itemIndex });
 					returnItems.push({ json: items[itemIndex].json, error, pairedItem: itemIndex });
 				} else {
