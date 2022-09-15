@@ -89,6 +89,7 @@ You need to create an LDAP credential to use this node. The only required fields
 
 - **Hostname**: The hostname or IP of the LDAP server
 - **SSL/TLS**: If the connection should use SSL/TLS
+- **StartTLS**: Whether to use StartTLS
 - **Bind DN** (optional): The full bind DN for the authenticating user/object
 - **Bind Password** (optional): The associated password for the `Bind DN`
 - **Port** (optional): The port to connect to. If not specified, the default port will be used (`389` or `636` for SSL/TLS)

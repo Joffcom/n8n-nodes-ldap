@@ -28,6 +28,18 @@ export class Ldap implements ICredentialType {
 			required: true,
 		},
 		{
+			displayName: 'StartTLS',
+			name: 'starttls',
+			type: 'boolean',
+			default: false,
+			required: false,
+			displayOptions: {
+				show: {
+					secure: [true],
+				},
+			},
+		},
+		{
 			displayName: 'Bind DN',
 			name: 'bindDN',
 			type: 'string',
