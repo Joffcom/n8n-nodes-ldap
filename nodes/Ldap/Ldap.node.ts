@@ -447,6 +447,13 @@ export class Ldap implements INodeType {
 						description: 'Comma-separated list of attributes to return',
 					},
 					{
+						displayName: 'Page Size',
+						name: 'pageSize',
+						type: 'number',
+						default: 0,
+						description: 'Number of SearchEntries to return per page for a search request',
+					},
+					{
 						displayName: 'Scope',
 						name: 'scope',
 						default: 'sub',
@@ -481,8 +488,10 @@ export class Ldap implements INodeType {
 
 		const credentials = await this.getCredentials('ldap');
 		const protocol = !credentials.secure || credentials.starttls ? 'ldap' : 'ldaps';
-		const port = credentials.port ? credentials.port : credentials.secure ? 636 : 389;
+		let port = !credentials.secure || credentials.starttls ? 389 : 686;
+		port = credentials.port ? credentials.port as number : port;
 		const url = `${protocol}://${credentials.hostname}:${port}`;
+
 		const bindDN = credentials.bindDN as string;
 		const bindPassword = credentials.bindPassword as string;
 
@@ -656,8 +665,12 @@ export class Ldap implements INodeType {
 					const limit = this.getNodeParameter('limit', itemIndex, 0) as number;
 					const options = this.getNodeParameter('options', itemIndex) as IDataObject;
 					options.attributes = options.attributes ? (options.attributes as string).split(',') : [];
-					options.sizeLimit = returnAll ? 0 : limit;
 					options.filter = filter;
+
+					options.sizeLimit = returnAll ? 0 : limit;
+					if (options.pageSize) {
+						options.paged = { pageSize: options.pageSize };
+					}
 
 					const results = await client.search(baseDN, options);
 
