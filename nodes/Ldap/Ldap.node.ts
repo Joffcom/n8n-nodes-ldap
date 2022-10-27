@@ -397,7 +397,7 @@ export class Ldap implements INodeType {
 						operation: ['search'],
 					},
 				},
-				description: 'LDAP filter',
+				description: `LDAP filter. Escape these chars * ( ) \\ with a backslash '\\'.`,
 			},
 			{
 				displayName: 'Return All',
@@ -450,8 +450,12 @@ export class Ldap implements INodeType {
 						displayName: 'Page Size',
 						name: 'pageSize',
 						type: 'number',
-						default: 0,
-						description: 'Number of SearchEntries to return per page for a search request',
+						default: 1000,
+						typeOptions: {
+							minValue: 0,
+						},
+						description:
+							'Maximum number of results to request at one time. Set to 0 to disable paging.',
 					},
 					{
 						displayName: 'Scope',
@@ -489,21 +493,17 @@ export class Ldap implements INodeType {
 		const credentials = await this.getCredentials('ldap');
 		const protocol = !credentials.secure || credentials.starttls ? 'ldap' : 'ldaps';
 		let port = !credentials.secure || credentials.starttls ? 389 : 686;
-		port = credentials.port ? credentials.port as number : port;
+		port = credentials.port ? (credentials.port as number) : port;
 		const url = `${protocol}://${credentials.hostname}:${port}`;
-
 		const bindDN = credentials.bindDN as string;
 		const bindPassword = credentials.bindPassword as string;
 
 		const ldapOptions: ClientOptions = { url };
-		let tlsOptions: IDataObject = {};
+		const tlsOptions: IDataObject = {};
 
 		if (credentials.secure) {
-			tlsOptions = {
-				rejectUnauthorized: credentials.allowUnauthorizedCerts === false,
-			};
+			tlsOptions.rejectUnauthorized = credentials.allowUnauthorizedCerts === false;
 			if (credentials.caCertificate) {
-				// ldapOptions.tlsOptions!.ca = Buffer.from(credentials.caCertificate as string);
 				tlsOptions.ca = [credentials.caCertificate as string];
 			}
 			if (!credentials.starttls) {
@@ -660,17 +660,38 @@ export class Ldap implements INodeType {
 				} else if (operation === 'search') {
 					// const ldapSearch = promisify(client.search);
 					const baseDN = this.getNodeParameter('baseDN', itemIndex) as string;
-					const filter = this.getNodeParameter('filter', itemIndex) as string;
+					let filter = this.getNodeParameter('filter', itemIndex) as string;
 					const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 					const limit = this.getNodeParameter('limit', itemIndex, 0) as number;
 					const options = this.getNodeParameter('options', itemIndex) as IDataObject;
-					options.attributes = options.attributes ? (options.attributes as string).split(',') : [];
-					options.filter = filter;
+					const pageSize = this.getNodeParameter(
+						'options.pageSize',
+						itemIndex,
+						1000,
+					) as IDataObject;
 
+					// Set paging settings
+					delete options.pageSize;
 					options.sizeLimit = returnAll ? 0 : limit;
-					if (options.pageSize) {
-						options.paged = { pageSize: options.pageSize };
+					if (pageSize) {
+						options.paged = { pageSize };
 					}
+
+					// Set attributes to retreive
+					options.attributes = options.attributes ? (options.attributes as string).split(',') : [];
+
+					// Replace escaped filter special chars for ease of use
+					// Character       ASCII value
+					// ---------------------------
+					// *               0x2a
+					// (               0x28
+					// )               0x29
+					// \               0x5c
+					filter = filter.replace(/\\\\/g, '\\5c');
+					filter = filter.replace(/\\\*/g, '\\2a');
+					filter = filter.replace(/\\\(/g, '\\28');
+					filter = filter.replace(/\\\)/g, '\\29');
+					options.filter = filter;
 
 					const results = await client.search(baseDN, options);
 
